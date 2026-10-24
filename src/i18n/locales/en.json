@@ -35,5 +35,6 @@
   "dineIn": "Dine In",
   "dineInDesc": "Enjoy your meal in the restaurant",
   "takeaway": "Takeaway",
-  "takeawayDesc": "Pick up your order to go"
+  "takeawayDesc": "Pick up your order to go",
+  "allPricesIncludeVat": "All prices include VAT"
 }

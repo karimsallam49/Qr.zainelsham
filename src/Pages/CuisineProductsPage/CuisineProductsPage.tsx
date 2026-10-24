@@ -19,7 +19,8 @@ export const CuisineProductsPage = () => {
   const [mergedData, setMergedData] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const { currentLanguage } = useLanguage();
   const params = useParams();
   const location = useLocation();
@@ -33,6 +34,8 @@ export const CuisineProductsPage = () => {
   }, [cuisineId, offset]);
 
   const handleDataLoaded = (newData: any[]) => {
+    loadingRef.current = false;
+
     if (newData.length === 0) {
       setHasMore(false);
       setIsLoadingMore(false);
@@ -46,6 +49,9 @@ export const CuisineProductsPage = () => {
       return unique;
     });
 
+    if (newData.length < 10) {
+      setHasMore(false);
+    }
     setIsLoadingMore(false);
   };
 
@@ -53,26 +59,27 @@ export const CuisineProductsPage = () => {
     setMergedData([]);
     setOffset(1);
     setHasMore(true);
+    loadingRef.current = false;
   }, [cuisineId, currentLanguage]);
 
   useEffect(() => {
-    const div = scrollRef.current;
-    if (!div) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore || mergedData.length === 0) return;
 
-    const handleScroll = () => {
-      if (
-        div.scrollTop + div.clientHeight >= div.scrollHeight - 150 &&
-        hasMore &&
-        !isLoadingMore
-      ) {
-        setIsLoadingMore(true);
-        setOffset((prev) => prev + 1);
-      }
-    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingRef.current) {
+          loadingRef.current = true;
+          setIsLoadingMore(true);
+          setOffset((prev) => prev + 1);
+        }
+      },
+      { rootMargin: "150px" }
+    );
 
-    div.addEventListener("scroll", handleScroll);
-    return () => div.removeEventListener("scroll", handleScroll);
-  }, [hasMore, isLoadingMore]);
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, mergedData.length]);
 
   if (!cuisineId)
     return (
@@ -84,7 +91,6 @@ export const CuisineProductsPage = () => {
   return (
     <div
       className="container py-1 category-page-container"
-      ref={scrollRef}
       style={{ maxHeight: "95vh", overflowY: "auto" }}
     >
       <div
@@ -120,6 +126,8 @@ export const CuisineProductsPage = () => {
           product={selectedProduct}
         />
       )}
+
+      {hasMore && <div ref={sentinelRef} style={{ height: "1px" }} />}
 
       {isLoadingMore && hasMore && (
         <p className="text-center text-muted py-2">{t("Loading more...")}</p>

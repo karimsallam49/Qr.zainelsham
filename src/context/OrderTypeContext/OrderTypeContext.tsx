@@ -18,7 +18,7 @@ const readInitialOrderType = (): OrderType => {
   if (urlType) {
     return urlType;
   }
-  return sessionStorage.getItem("order_type") || "";
+  return sessionStorage.getItem("order_type") || "hall";
 };
 
 export const OrderTypeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

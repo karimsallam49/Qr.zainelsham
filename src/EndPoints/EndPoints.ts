@@ -10,7 +10,7 @@ export const getServiceType = () => {
   return (
     params.get("service_type") ||
     sessionStorage.getItem("order_type") ||
-    ""
+    "hall"
   );
 };
 

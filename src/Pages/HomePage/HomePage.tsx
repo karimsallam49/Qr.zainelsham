@@ -37,7 +37,7 @@ const MenuPage = () => {
         className="menu-page-content w-100 d-flex flex-column align-items-center position-relative"
         style={{ overflowY: "auto", maxHeight: "100vh", padding: "0" }}
       >
-        <div className="menu-banner">
+        <div className="menu-banner w-100">
           <BackGroundImage />
         </div>
 

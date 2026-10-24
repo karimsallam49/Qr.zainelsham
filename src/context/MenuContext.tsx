@@ -32,7 +32,14 @@ export const MenuProvider = ({ children }: { children: ReactNode }) => {
         },
       });
       const data = res.data as CategoryListResponse;
-setCategories(data.categories || []);
+      const flattened = (data.categories || []).flatMap((cat) => [
+        cat,
+        ...(cat.childes ?? []),
+      ]);
+      const merged = flattened.filter(
+        (cat, index, arr) => arr.findIndex((c) => c.id === cat.id) === index
+      );
+setCategories(merged);
       setError(null);
     } catch (err: any) {
       setError("حدث خطأ أثناء تحميل البيانات");

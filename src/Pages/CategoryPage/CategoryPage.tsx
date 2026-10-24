@@ -11,6 +11,7 @@ import "./CategoryPage.css";
 import imageplaceholder from "../../assets/BackGround.png";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "../../context/LanguageContext/LanguageContext";
+import { ServiceTypeBadge } from "../../Components/ServiceTypeBadge/ServiceTypeBadge";
 
 export const CategoryPage = () => {
   const { t } = useTranslation();
@@ -21,7 +22,8 @@ export const CategoryPage = () => {
   const [mergedData, setMergedData] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const {currentLanguage}=useLanguage()
   const params = useParams();
   const categoryId = params.categoryId;
@@ -45,6 +47,8 @@ export const CategoryPage = () => {
   }, [currentSubcategory, categoryId, offset]);
 
   const handleDataLoaded = (newData: any[]) => {
+    loadingRef.current = false;
+
     if (newData.length === 0) {
       setHasMore(false);
       setIsLoadingMore(false);
@@ -58,6 +62,9 @@ export const CategoryPage = () => {
       return unique;
     });
 
+    if (newData.length < 10) {
+      setHasMore(false);
+    }
     setIsLoadingMore(false);
   };
 
@@ -65,26 +72,27 @@ export const CategoryPage = () => {
     setMergedData([]);
     setOffset(1);
     setHasMore(true);
+    loadingRef.current = false;
   }, [currentSubcategory, categoryId, currentLanguage]);
 
   useEffect(() => {
-    const div = scrollRef.current;
-    if (!div) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore || mergedData.length === 0) return;
 
-    const handleScroll = () => {
-      if (
-        div.scrollTop + div.clientHeight >= div.scrollHeight - 150 &&
-        hasMore &&
-        !isLoadingMore
-      ) {
-        setIsLoadingMore(true);
-        setOffset((prev) => prev + 1);
-      }
-    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingRef.current) {
+          loadingRef.current = true;
+          setIsLoadingMore(true);
+          setOffset((prev) => prev + 1);
+        }
+      },
+      { rootMargin: "150px" }
+    );
 
-    div.addEventListener("scroll", handleScroll);
-    return () => div.removeEventListener("scroll", handleScroll);
-  }, [hasMore, isLoadingMore]);
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, mergedData.length]);
 
   if (loading)
     return (
@@ -98,7 +106,6 @@ export const CategoryPage = () => {
   return (
     <div
       className="container py-1 category-page-container"
-      ref={scrollRef}
       style={{ maxHeight: "95vh", overflowY: "auto" }}
     >
       <div
@@ -116,6 +123,8 @@ export const CategoryPage = () => {
         </Link>
 
         <h5 className="text-center text-white w-100 mb-3">{data[0]?.name}</h5>
+        <div className="vat-note var-category">{t("allPricesIncludeVat")}</div>
+        <ServiceTypeBadge className="var-category" />
       </div>
 
       {subcategories.length > 0 && (
@@ -161,6 +170,8 @@ export const CategoryPage = () => {
           product={selectedProduct}
         />
       )}
+
+      {hasMore && <div ref={sentinelRef} style={{ height: "1px" }} />}
 
       {isLoadingMore && hasMore && (
         <p className="text-center text-muted py-2">{t("Loading more...")}</p>

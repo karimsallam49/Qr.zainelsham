@@ -53,3 +53,26 @@ body {
 .categorybox-overlay span {
   font-size: medium;
 }
+
+@media (max-width: 991.98px) {
+  .container,
+  .container-sm,
+  .container-md {
+    max-width: 100%;
+  }
+}
+
+.vat-note {
+  position: absolute;
+  top: 3%;
+  left: 53%;
+  transform: translate(-50%);
+  background: #000;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 1.2rem;
+  white-space: nowrap;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
