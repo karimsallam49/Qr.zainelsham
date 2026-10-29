@@ -13,6 +13,15 @@ type ProductsCardProps = {
 // const {t}=useTranslation()
 export const ProductsCArd = ({records,setProductInfo,setopen}:ProductsCardProps) => {
   const {t,i18n}=useTranslation()
+
+  const hasDiscount = Number(records.discount) > 0;
+  const originalPrice = Number(records.price) || 0;
+  const discountedPrice = hasDiscount
+    ? records.discount_type === "percent"
+      ? Math.max(0, originalPrice - (originalPrice * Number(records.discount)) / 100)
+      : Math.max(0, originalPrice - Number(records.discount))
+    : originalPrice;
+
   return (
      <div style={{cursor:"pointer"}} key={records.id} className="w-100 h-100"  onClick={()=>{
                     setProductInfo && setProductInfo(records)
@@ -80,9 +89,28 @@ export const ProductsCArd = ({records,setProductInfo,setopen}:ProductsCardProps)
   className="card-text mb-0 text-danger fw-semibold "
   style={{  marginTop: "auto",  direction: i18n.language === "ar" ? "rtl" : "ltr", }}
 >
-  <span style={{ display: "inline-block", width: "100px", fontSize: "small" }}>
-    {Number(records.price) > 0
-      ? `${records.price.toFixed(2)} ${t("currency")}`
+  <span
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 4,
+      fontSize: "small",
+      flexWrap: "wrap",
+    }}
+  >
+    {originalPrice > 0
+      ? hasDiscount
+        ? (
+          <>
+            <del style={{ color: "#999", fontSize: "0.75rem", textDecoration: "line-through", lineHeight: 1 }}>
+              {originalPrice.toFixed(2)}
+            </del>
+            <span style={{ fontWeight: 700, color: "#722914" }}>
+              {discountedPrice.toFixed(2)} {t("currency")}
+            </span>
+          </>
+        )
+        : `${originalPrice.toFixed(2)} ${t("currency")}`
       : i18n.language === "ar"
       ? "السعر حسب الاختيار"
       : "Price according to selection"}

@@ -20,6 +20,15 @@ const [selectedVariations, setSelectedVariations] = useState<any[]>([]);
 
   const imageSrc = useMemo(() => `${ImageUrl}/${product.image}`, [product.image]);
 
+  const hasDiscount = Number(product.discount) > 0;
+  const discountedPrice = useMemo(() => {
+    if (!hasDiscount) return Number(product.price) || 0;
+    const base = Number(product.price) || 0;
+    return product.discount_type === "percent"
+      ? Math.max(0, base - (base * product.discount) / 100)
+      : Math.max(0, base - product.discount);
+  }, [product.discount, product.discount_type, product.price, hasDiscount]);
+
 // const variationsTotal = selectedVariations.reduce((sum, v) => {
 //   const value = product.variations
 //     ?.find((vr: any) => vr.name === v.name)
@@ -70,9 +79,35 @@ const [selectedVariations, setSelectedVariations] = useState<any[]>([]);
           >
             <h6 className="fw-bold">{product.name}</h6>
              <p className="text-muted text-start mb-0">
-            <span style={{ display: "inline-block", width: "100px", fontSize: "small" }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                fontSize: "small",
+                flexWrap: "wrap",
+              }}
+            >
               {Number(product.price) > 0
-                ? `${product.price.toFixed(2)} ${t("currency")}`
+                ? hasDiscount
+                  ? (
+                    <>
+                      <del
+                        style={{
+                          color: "#999",
+                          fontSize: "0.75rem",
+                          textDecoration: "line-through",
+                          lineHeight: 1,
+                        }}
+                      >
+                        {product.price.toFixed(2)}
+                      </del>
+                      <span style={{ fontWeight: 700, color: "#722914" }}>
+                        {discountedPrice.toFixed(2)} {t("currency")}
+                      </span>
+                    </>
+                  )
+                  : `${product.price.toFixed(2)} ${t("currency")}`
                 : i18n.language === "ar"
                 ? "السعر حسب الاختيار"
                 : "Price according to selection"}

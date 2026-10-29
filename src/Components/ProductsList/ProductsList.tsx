@@ -12,6 +12,12 @@ type ProductsCardProps = {
 
 export const ProducList = ({ records, setProductInfo, setopen }: ProductsCardProps) => {
   const { t } = useTranslation();
+  const hasDiscount = Number(records.discount) > 0;
+  const discountedPrice = hasDiscount
+    ? records.discount_type === "percent"
+      ? Math.max(0, records.price - (records.price * Number(records.discount)) / 100)
+      : Math.max(0, records.price - Number(records.discount))
+    : records.price;
 
   return (
     <div
@@ -34,7 +40,30 @@ export const ProducList = ({ records, setProductInfo, setopen }: ProductsCardPro
 
       <div className="product-info">
         <p className="product-name">{records.name}</p>
-        <p className="product-price">{records.price.toFixed(2)} {t("EGP")}</p>
+        <p
+          className="product-price"
+          style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}
+        >
+          {hasDiscount ? (
+            <>
+              <del
+                style={{
+                  color: "#999",
+                  fontSize: "0.8rem",
+                  textDecoration: "line-through",
+                  lineHeight: 1,
+                }}
+              >
+                {records.price.toFixed(2)}
+              </del>
+              <span style={{ fontWeight: 700 }}>
+                {discountedPrice.toFixed(2)} {t("currency")}
+              </span>
+            </>
+          ) : (
+            `${records.price.toFixed(2)} ${t("currency")}`
+          )}
+        </p>
       </div>
     </div>
   );
