@@ -5,6 +5,12 @@
     <!-- <link rel="icon" type="image/svg+xml" href="/src/assets/favicon.png" /> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet" id="v2-fonts">
+    <script>
+      // V2 theme bootstrap — بيشتغل قبل React عشان مفيش flash
+      document.documentElement.dataset.theme =
+        localStorage.getItem("v2-theme-mode") || "v2-light";
+    </script>
     <link
   rel="stylesheet"
   href="https://unpkg.com/swiper@8/swiper-bundle.min.css"

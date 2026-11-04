@@ -1,114 +1,180 @@
 import { useEffect, useRef, useState } from "react";
-import { GetDataComponent } from "../../Components/GetDataComponents/GetDataComponent";
-import { ProductModal } from "../../Components/ProductsDetails/ProductModal";
-import type { ProductDTO } from "../../DTO/ProductsDTO";
-import { GetProductByNameAPI } from "../../EndPoints/EndPoints";
-import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowLeft, Search, X } from "lucide-react";
+import type { ProductDTO, ProductListResponse } from "../../DTO/ProductsDTO";
+import { GetProductByNameAPI } from "../../EndPoints/EndPoints";
 import { useLanguage } from "../../context/LanguageContext/LanguageContext";
+import { usePost } from "../../Hooks/UsePost";
+import V2ProductRow from "../../Components/V2/V2ProductRow";
+import { ProductModal } from "../../Components/ProductsDetails/ProductModal";
+import "../HomePageV2/v2.css";
+import "./SearchResalutage.css";
+
+const LIMIT = 10;
 
 const SearchResalutage = () => {
-  const { search } = useLocation();
-  const query = new URLSearchParams(search).get("query") || "";
-  const decodedQuery = decodeURIComponent(query);
-
-  const [showModal, setShowModal] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<ProductDTO | null>(null);
-  const [mergedData, setMergedData] = useState<any[]>([]);
-  const [offset, setOffset] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasMoreData, setHasMoreData] = useState(true);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
-  const {currentLanguage}=useLanguage()
-  const API = `${GetProductByNameAPI}?limit=10&offset=${offset}`;
-  const APIBody = { name: decodedQuery, is_halal: 0 };
+  const navigate = useNavigate();
+  const { search } = useLocation();
+  const initialQuery = decodeURIComponent(
+    new URLSearchParams(search).get("query") || ""
+  );
+  const { currentLanguage } = useLanguage();
+  const lang = currentLanguage === "ar" ? "ar" : "en";
+
+  const [term, setTerm] = useState(initialQuery);
+  const [debounced, setDebounced] = useState(initialQuery);
+  const [offset, setOffset] = useState(1);
+  const [items, setItems] = useState<ProductDTO[]>([]);
+  const [totalSize, setTotalSize] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<ProductDTO | null>(
+    null
+  );
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const api = `${GetProductByNameAPI}?limit=${LIMIT}&offset=${offset}`;
+  const { mutate, isPending } = usePost<ProductListResponse, object>(lang, api);
+
+  // debounce على الكتابة — نستنى 400ms قبل ما نبعت request
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(term.trim()), 400);
+    return () => clearTimeout(id);
+  }, [term]);
+
+  // نخلي الـ query في الـ URL عشان الصفحة تفضل قابلة للمشاركة/الرجوع
+  useEffect(() => {
+    const q = debounced ? `?query=${encodeURIComponent(debounced)}` : "";
+    navigate(`/search${q}`, { replace: true });
+  }, [debounced, navigate]);
+
+  // reset لما الكلمة أو اللغة تتغير
+  useEffect(() => {
+    setOffset(1);
+    setItems([]);
+    setTotalSize(0);
+  }, [debounced, lang]);
+
+  // fetch — بيتنادى أول مرة ولما الـ offset يزيد
+  useEffect(() => {
+    if (!debounced) return;
+    mutate(
+      { name: debounced, is_halal: 0 },
+      {
+        onSuccess: (res) => {
+          setTotalSize(res.total_size ?? 0);
+          setItems((prev) => {
+            const ids = new Set(prev.map((p) => p.id));
+            const fresh = (res.products ?? []).filter((p) => !ids.has(p.id));
+            return offset === 1 ? res.products ?? [] : [...prev, ...fresh];
+          });
+        },
+      }
+    );
+  }, [debounced, offset, lang, mutate]);
 
   useEffect(() => {
-    setMergedData([]);
-    setOffset(1);
-    setHasMoreData(true);
-    setIsLoading(false);
-  }, [decodedQuery, currentLanguage]);
+    inputRef.current?.focus();
+  }, []);
 
-  const handleDataLoaded = (newData: any[]) => {
-    setIsLoading(false);
+  const hasMore = items.length < totalSize;
 
-    if (!newData || newData.length === 0) {
-      setHasMoreData(false);
-      return;
-    }
+  // infinite scroll على مستوى الصفحة كلها
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isPending) {
+          setOffset((o) => o + 1);
+        }
+      },
+      { rootMargin: "320px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, isPending]);
 
-    setMergedData((prev) => {
-      const unique = [...prev, ...newData].filter(
-        (v, i, a) => a.findIndex((t) => t.id === v.id) === i
-      );
-      return unique;
-    });
-
-    const div = scrollRef.current;
-    if (div && div.scrollHeight <= div.clientHeight && hasMoreData) {
-      setOffset((prev) => prev + 1);
-      setIsLoading(true);
-    }
+  const openProduct = (p: ProductDTO) => {
+    setSelectedProduct(p);
+    setShowModal(true);
   };
 
-  useEffect(() => {
-    const div = scrollRef.current;
-    if (!div) return;
-
-    const handleScroll = () => {
-      if (
-        div.scrollTop + div.clientHeight >= div.scrollHeight - 100 &&
-        hasMoreData &&
-        !isLoading
-      ) {
-        setIsLoading(true);
-        setOffset((prev) => prev + 1);
-      }
-    };
-
-    div.addEventListener("scroll", handleScroll);
-    return () => div.removeEventListener("scroll", handleScroll);
-  }, [hasMoreData, isLoading]);
-
   return (
-    <div
-      className="container py-3"
-      ref={scrollRef}
-      style={{ minHeight: "100vh", overflowY: "auto" }}
-    >
-      <h3>
-        {t("Search-results")} "{decodedQuery}"
-      </h3>
-
-      <GetDataComponent
-      currentLanguage={currentLanguage}
-        APIURL={API}
-        ApiBody={APIBody}
-        SelectedProduct={setSelectedProduct}
-        setShowModal={setShowModal}
-        mergedData={mergedData}
-        onDataLoaded={handleDataLoaded}
-      />
-
-      {/* 🔄 مؤشر تحميل */}
-      {isLoading && hasMoreData && (
-        <div className="text-center py-2">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
+    <div className="v2-inner v2-search-page">
+      <div className="v2-search-bar">
+        <button
+          type="button"
+          className="v2-icon-btn v2-back-btn"
+          aria-label={t("v2.backToSite")}
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft size={18} />
+        </button>
+        <div className="v2-search">
+          <Search size={16} color="var(--v2-gold)" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+            placeholder={t("v2.searchPlaceholder")}
+            aria-label={t("mobile_header.search")}
+          />
+          {term && (
+            <button
+              type="button"
+              className="v2-clear-btn"
+              aria-label="clear"
+              onClick={() => setTerm("")}
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
+      </div>
+
+      {!debounced ? (
+        <div className="v2-search-empty">
+          <Search size={40} strokeWidth={1.2} />
+          <p>{t("v2.typeToSearch")}</p>
+        </div>
+      ) : (
+        <>
+          <h2 className="v2-search-title">
+            {t("Search-results")} "{debounced}"
+          </h2>
+          <div className="v2-menu-list">
+            {items.map((product) => (
+              <V2ProductRow
+                key={product.id}
+                product={product}
+                onOpen={openProduct}
+              />
+            ))}
+
+            {isPending && items.length === 0 && (
+              <div className="v2-loading-row">{t("v2.loadingDishes")}</div>
+            )}
+
+            {!isPending && items.length === 0 && (
+              <div className="v2-search-empty">
+                <p>{t("v2.noResults")}</p>
+              </div>
+            )}
+
+            {hasMore && (
+              <div ref={sentinelRef} className="v2-loading-row">
+                {isPending ? t("v2.loadingDishes") : ""}
+              </div>
+            )}
+          </div>
+        </>
       )}
 
-      {/* ⛔ نهاية النتائج */}
-      {!hasMoreData && mergedData.length > 0 && (
-        <p className="text-center text-secondary py-3">
-          {t("No more results found")}
-        </p>
-      )}
-
-      
       {showModal && selectedProduct && (
         <ProductModal
           show={showModal}

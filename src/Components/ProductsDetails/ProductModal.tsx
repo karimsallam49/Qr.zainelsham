@@ -21,13 +21,15 @@ const [selectedVariations, setSelectedVariations] = useState<any[]>([]);
   const imageSrc = useMemo(() => `${ImageUrl}/${product.image}`, [product.image]);
 
   const hasDiscount = Number(product.discount) > 0;
+  // نفس منطق الكروت: final_price من السيرفر الأول، وبعدين حساب الخصم
   const discountedPrice = useMemo(() => {
-    if (!hasDiscount) return Number(product.price) || 0;
     const base = Number(product.price) || 0;
+    if (product.final_price != null) return Number(product.final_price);
+    if (!hasDiscount) return base;
     return product.discount_type === "percent"
       ? Math.max(0, base - (base * product.discount) / 100)
       : Math.max(0, base - product.discount);
-  }, [product.discount, product.discount_type, product.price, hasDiscount]);
+  }, [product.discount, product.discount_type, product.price, product.final_price, hasDiscount]);
 
 // const variationsTotal = selectedVariations.reduce((sum, v) => {
 //   const value = product.variations

@@ -16,7 +16,10 @@ export const ProductsCArd = ({records,setProductInfo,setopen}:ProductsCardProps)
 
   const hasDiscount = Number(records.discount) > 0;
   const originalPrice = Number(records.price) || 0;
-  const discountedPrice = hasDiscount
+  // نفس منطق الـ V2: final_price من السيرفر الأول، وبعدين حساب الخصم
+  const discountedPrice = (records as any).final_price != null
+    ? Number((records as any).final_price)
+    : hasDiscount
     ? records.discount_type === "percent"
       ? Math.max(0, originalPrice - (originalPrice * Number(records.discount)) / 100)
       : Math.max(0, originalPrice - Number(records.discount))
@@ -105,7 +108,7 @@ export const ProductsCArd = ({records,setProductInfo,setopen}:ProductsCardProps)
             <del style={{ color: "#999", fontSize: "0.75rem", textDecoration: "line-through", lineHeight: 1 }}>
               {originalPrice.toFixed(2)}
             </del>
-            <span style={{ fontWeight: 700, color: "#722914" }}>
+            <span style={{ fontWeight: 700, color: "var(--v2-gold, #722914)" }}>
               {discountedPrice.toFixed(2)} {t("currency")}
             </span>
           </>

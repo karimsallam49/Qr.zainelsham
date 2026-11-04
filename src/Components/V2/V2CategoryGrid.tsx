@@ -1,0 +1,89 @@
+import { useState, type CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
+import { LayoutGrid } from "lucide-react";
+import type { Category } from "../../DTO/CategoriesDTO";
+import { useDragScroll } from "../../Hooks/useDragScroll";
+import PlaceHolderImage from "../../assets/WhatsApp Image 2025-10-08 at 16.02.14.jpeg";
+
+interface Props {
+  categories: Category[];
+  activeId: number | null;
+  /** "الكل" active — قايمة كل المنتجات معروضة */
+  allActive: boolean;
+  onSelect: (cat: Category | null) => void;
+}
+
+const V2CategoryGrid = ({ categories, activeId, allActive, onSelect }: Props) => {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const railRef = useDragScroll<HTMLDivElement>();
+  const parents = categories.filter((c) => c.parent_id?.toString() === "0");
+
+  if (parents.length === 0) return null;
+
+  const handleAll = () => {
+    if (expanded) {
+      onSelect(null);
+      setExpanded(false);
+    } else {
+      setExpanded(true);
+    }
+  };
+
+  const handleSelect = (cat: Category) => {
+    onSelect(cat);
+    setExpanded(false);
+  };
+
+  return (
+    <div
+      key={expanded ? "grid" : "rail"}
+      ref={railRef}
+      className={expanded ? "v2-cat-grid" : "v2-cat-rail"}
+      role="list"
+    >
+      <div
+        className={`v2-cat-tile ${allActive ? "active" : ""}`}
+        style={{ "--i": 0 } as CSSProperties}
+        onClick={handleAll}
+        role="listitem"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && handleAll()}
+      >
+        {expanded && <span className="v2-tile-name">{t("v2.all")}</span>}
+        <LayoutGrid size={22} className="v2-tile-icon" />
+      </div>
+
+      {parents.map((cat, idx) => {
+        const img = cat.banner_image_full_path || cat.image_full_path;
+
+        return (
+          <div
+            key={cat.id}
+            className={`v2-cat-tile ${activeId === cat.id ? "active" : ""}`}
+            style={{ "--i": idx + 1 } as CSSProperties}
+            onClick={() => handleSelect(cat)}
+            role="listitem"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && handleSelect(cat)}
+          >
+            {img && (
+              <img
+                src={img}
+                alt={cat.name}
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = PlaceHolderImage;
+                }}
+              />
+            )}
+            <span className="v2-tile-name">{cat.name}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export default V2CategoryGrid;
