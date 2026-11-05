@@ -55,7 +55,7 @@ const V2CategoryGrid = ({ categories, activeId, allActive, onSelect }: Props) =>
       </div>
 
       {parents.map((cat, idx) => {
-        const img = cat.banner_image_full_path || cat.image_full_path;
+        const img = (cat as any).image_thumb_full_path || (cat as any).image_md_full_path || cat.banner_image_full_path || cat.image_full_path;
 
         return (
           <div

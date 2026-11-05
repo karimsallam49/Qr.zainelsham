@@ -18,7 +18,7 @@ const [selectedVariations, setSelectedVariations] = useState<any[]>([]);
 
   const CurrentPhoto = useMemo(() => product.product_type === "veg", [product.product_type]);
 
-  const imageSrc = useMemo(() => `${ImageUrl}/${product.image}`, [product.image]);
+  const imageSrc = useMemo(() => (product as any).image_md_full_path ?? (product as any).image_thumb_full_path ?? `${ImageUrl}/${product.image}`, [product]);
 
   const hasDiscount = Number(product.discount) > 0;
   // نفس منطق الكروت: final_price من السيرفر الأول، وبعدين حساب الخصم

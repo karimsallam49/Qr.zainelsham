@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Slider from "react-slick";
-import { UtensilsCrossed, ShoppingBag } from "lucide-react";
+import { UtensilsCrossed, ShoppingBag, BadgePercent } from "lucide-react";
 import { useFetch } from "../../Hooks/useFetch";
 import { useLanguage } from "../../context/LanguageContext/LanguageContext";
 import { useOrderType } from "../../context/OrderTypeContext/OrderTypeContext";
@@ -85,7 +85,15 @@ const V2HeroSlider = () => {
       <span className="v2-corner bl" />
       <span className="v2-corner br" />
 
-      {/* بادج نوع الطلب على الطرف + الضريبة في النص (بتتخفى في التيك أواي) */}
+      {/* بانر الضريبة فوق السلايدر (بيختفي في التيك أواي) */}
+      {orderType !== "takeaway" && (
+        <div className="v2-vat-banner">
+          <BadgePercent />
+          <span>{t("vatNote")}</span>
+        </div>
+      )}
+
+      {/* بادج نوع الطلب على الطرف */}
       <div className="v2-hero-badges">
         {orderType === "takeaway" ? (
           <span className="v2-hero-badge dine">
@@ -95,9 +103,6 @@ const V2HeroSlider = () => {
           <span className="v2-hero-badge dine">
             <UtensilsCrossed /> {t("dineIn")}
           </span>
-        )}
-        {orderType !== "takeaway" && (
-          <span className="v2-hero-badge vat">{t("vatNote")}</span>
         )}
       </div>
 
@@ -116,8 +121,8 @@ const V2HeroSlider = () => {
                 loading="lazy"
                 src={
                   direction
-                    ? banner.image_ar_url ?? banner.image_url
-                    : banner.image_url
+                    ? (banner as any).image_ar_md ?? (banner as any).image_md ?? banner.image_ar_url ?? banner.image_url
+                    : (banner as any).image_md ?? banner.image_url
                 }
                 onError={(e) => {
                   e.currentTarget.onerror = null;

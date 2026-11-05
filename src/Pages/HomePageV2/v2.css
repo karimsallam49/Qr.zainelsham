@@ -1279,10 +1279,50 @@ html[data-theme="v2-light"] .v2-cat-tile::before {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
-.v2-hero-badge.vat {
-  background: rgba(10, 17, 32, 0.72);
-  color: #f5f1e8;
-  border: 1px solid rgba(245, 241, 232, 0.2);
+/* بانر الضريبة — شريط هادي فوق الـ hero slider مع زخرفة خطوط ذهبية */
+.v2-vat-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 0 -0.75rem 0.75rem;
+  padding: 0.55rem 1rem;
+  background:
+    radial-gradient(ellipse at center, rgba(201, 163, 91, 0.12), transparent 65%),
+    var(--v2-ink-deep, #0a1120);
+  border-block: 1px solid rgba(201, 163, 91, 0.25);
+  color: var(--v2-cream, #f5f1e8);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.6;
+  text-align: center;
+}
+/* خطوط زخرفية على جنبين النص */
+.v2-vat-banner::before,
+.v2-vat-banner::after {
+  content: "";
+  height: 1px;
+  flex: 0 1 64px;
+}
+.v2-vat-banner::before {
+  background: linear-gradient(90deg, transparent, rgba(201, 163, 91, 0.65));
+}
+.v2-vat-banner::after {
+  background: linear-gradient(90deg, rgba(201, 163, 91, 0.65), transparent);
+}
+.v2-vat-banner svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--v2-gold-bright, #dcb877);
+}
+@media (min-width: 992px) {
+  .v2-vat-banner {
+    font-size: 0.82rem;
+    padding: 0.6rem 1rem;
+  }
 }
 .v2-hero-badge.dine {
   background: var(--v2-gold, #c9a35b);
