@@ -74,6 +74,7 @@ const V2HeroSlider = () => {
     arrows: false,
     slidesToShow: 1,
     slidesToScroll: 1,
+    adaptiveHeight: true,
     rtl: direction,
     fade: false,
   };
@@ -121,8 +122,8 @@ const V2HeroSlider = () => {
                 loading="lazy"
                 src={
                   direction
-                    ? (banner as any).image_ar_md ?? (banner as any).image_md ?? banner.image_ar_url ?? banner.image_url
-                    : (banner as any).image_md ?? banner.image_url
+                    ? (banner.image_ar_url ?? banner.image_url)
+                    : banner.image_url
                 }
                 onError={(e) => {
                   e.currentTarget.onerror = null;

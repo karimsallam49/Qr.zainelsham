@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useRef } from 'react';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import AppdesckTopHeader from './Components/AppdesktopHeader/AppdesckTopHeader';
+// import AppdesckTopHeader from './Components/AppdesktopHeader/AppdesckTopHeader';
 // import OrderTypeModal from './Components/OrderTypeModal/OrderTypeModal';
 
 const PRESERVED_KEYS = ["branchid", "lang", "service_type"];
@@ -54,7 +54,7 @@ const queryClient = new QueryClient();
             <PreserveSearchParams />
 <div className='w-100' style={{minHeight:"100vh"}}>
       {/* <OrderTypeModal /> */}
-      <AppdesckTopHeader />
+      {/* <AppdesckTopHeader /> */}
      <AppRoutes />
 </div>
      {/* <AppFooter/> */}

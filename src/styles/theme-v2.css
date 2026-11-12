@@ -2196,7 +2196,8 @@ html[data-theme^="v2"] .modal-pic-container {
   margin-bottom: 0 !important;
 }
 html[data-theme^="v2"] .bottom-sheet-modal .ModalImage {
-  max-height: 180px !important;
+  max-height: 220px !important;
+  object-fit: contain !important;
   border-radius: 14px !important;
 }
 /* بوكس الاسم/السعر — مضغوط ومتناسق */
@@ -2312,7 +2313,7 @@ html[data-theme^="v2"] .modal-body .btn-primary {
     padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
   }
   html[data-theme^="v2"] .bottom-sheet-modal .ModalImage {
-    max-height: 160px !important;
+    max-height: 190px !important;
   }
 }
 

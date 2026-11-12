@@ -31,6 +31,18 @@ const [selectedVariations, setSelectedVariations] = useState<any[]>([]);
       : Math.max(0, base - product.discount);
   }, [product.discount, product.discount_type, product.price, product.final_price, hasDiscount]);
 
+  // خصم الـ variations — نفس حساب السيرفر: خصم النسبة وبعدين تقريب لأقرب 5
+  const optionDiscountType =
+    product.branch_product?.discount_type ?? product.discount_type;
+  const getDiscountedOption = (price: number) => {
+    if (price <= 0 || !hasDiscount) return price;
+    const off =
+      optionDiscountType === "percent"
+        ? (price * Number(product.discount)) / 100
+        : Number(product.discount);
+    return Math.round(Math.max(price - off, 0) / 5) * 5;
+  };
+
 // const variationsTotal = selectedVariations.reduce((sum, v) => {
 //   const value = product.variations
 //     ?.find((vr: any) => vr.name === v.name)
@@ -60,7 +72,7 @@ const [selectedVariations, setSelectedVariations] = useState<any[]>([]);
               style={{
                 maxHeight: 200,
                 width: "100%",
-                objectFit: "cover",
+                objectFit: "contain",
                 borderRadius: "10px",
               }}
               onError={(e) => {
@@ -194,12 +206,19 @@ const [selectedVariations, setSelectedVariations] = useState<any[]>([]);
 
               {i18n.language === "ar" ? value.ar_label : value.label}
             </div>
-             {value.optionPrice && (
+             {Number(value.optionPrice) > 0 && (
               <div
                 className={`fw-semibod ${isSelected ? "text-light" : "text-muted"}`}
                 style={{margin:"0 .3rem"}}
               >
-                {value.optionPrice} {t("currency")}
+                {getDiscountedOption(Number(value.optionPrice)) <
+                  Number(value.optionPrice) && (
+                  <del className="me-1" style={{ opacity: 0.7 }}>
+                    {Number(value.optionPrice).toFixed(2)}
+                  </del>
+                )}
+                {getDiscountedOption(Number(value.optionPrice)).toFixed(2)}{" "}
+                {t("currency")}
               </div>
             )}
             </div>
